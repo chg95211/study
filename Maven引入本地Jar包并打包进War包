@@ -1,0 +1,71 @@
+Maven引入本地Jar包并打包进War包中
+1.概述
+在平时的开发中，有一些Jar包因为种种原因，在Maven的中央仓库中没有收录，所以就要使用本地引入的方式加入进来。
+
+2. 拷贝至项目根目录
+项目根目录即pom.xml文件所在的同级目录，可以在项目根目录下创建文件夹lib，如下图所示： 
+拷贝Jar
+
+这4个Jar包是识别网页编码所需的包。
+
+3. 配置pom.xml，依赖本地Jar
+配置Jar的dependency，包括groupId，artifactId，version三个属性，同时还要包含scope和systemPath属性，分别指定Jar包来源于本地文件，和本地文件的所在路径。
+
+<!--  #################################   cpdetector   ####################################  -->
+<dependency>
+    <groupId>cpdetector</groupId>
+    <artifactId>cpdetector</artifactId>
+    <version>1.0.10</version>
+    <scope>system</scope>
+    <systemPath>${basedir}/lib/cpdetector_1.0.10.jar</systemPath>
+</dependency>
+
+<dependency>
+    <groupId>antlr</groupId>
+    <artifactId>antlr</artifactId>
+    <version>2.7.4</version>
+    <scope>system</scope>
+    <systemPath>${basedir}/lib/antlr-2.7.4.jar</systemPath>
+</dependency>
+
+<dependency>
+    <groupId>chardet</groupId>
+    <artifactId>chardet</artifactId>
+    <version>1.0</version>
+    <scope>system</scope>
+    <systemPath>${basedir}/lib/chardet-1.0.jar</systemPath>
+</dependency>
+
+<dependency>
+    <groupId>jargs</groupId>
+    <artifactId>jargs</artifactId>
+    <version>1.0</version>
+    <scope>system</scope>
+    <systemPath>${basedir}/lib/jargs-1.0.jar</systemPath>
+</dependency>
+其中，${basedir}是指项目根路径
+
+4. 配置Maven插件将本地Jar打包进War中
+在进行以上配置以后，编写代码时已经可以引入Jar包中的class了，但是在打包时，由于scope=system,默认并不会将Jar包打进war包中，所有需要通过插件进行打包。
+
+修改pom.xml文件，在plugins标签下加入下面的代码
+
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-dependency-plugin</artifactId>
+    <version>2.10</version>
+    <executions>
+        <execution>
+            <id>copy-dependencies</id>
+            <phase>compile</phase>
+            <goals>
+                <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+                <outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/lib</outputDirectory>
+                <includeScope>system</includeScope>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+这样，打出来的war包中，就会包含本地引入的jar依赖了。
